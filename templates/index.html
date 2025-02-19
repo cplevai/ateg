@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Events</title>
+    <style>
+        body {
+            background-color: #121212;
+            color: #e0e0e0;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        header {
+            background: #ff4444;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            padding: 0 15px;
+        }
+
+        .menu-btn {
+            border: none;
+            padding: 10px;
+            cursor: pointer;
+            font-size: 1.8em;
+            background: none;
+            color: white;
+        }
+
+        h1 {
+            color: white;
+            font-size: 32px;
+            margin-left: 15px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 0 20px;
+        }
+
+        .nav {
+            margin-bottom: 20px;
+        }
+
+        a {
+            color: #ff4444;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+
+        .btn {
+            background-color: #ff4444;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            display: inline-block;
+            margin-top: 10px;
+        }
+        .btn:hover {
+            background-color: #cc0000;
+        }
+
+        .search-bar {
+            width: 100%;
+            max-width: 600px;
+            margin: 20px auto;
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            background-color: #1e1e1e;
+            border-radius: 5px;
+        }
+
+        .search-bar input {
+            flex-grow: 1;
+            padding: 10px;
+            border: 1px solid #ff4444;
+            border-radius: 5px;
+            background-color: #121212;
+            color: #e0e0e0;
+        }
+
+        .search-bar button {
+            padding: 10px;
+            background-color: #ff4444;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .search-bar button:hover {
+            background-color: #cc0000;
+        }
+
+        .events-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            justify-content: center;
+        }
+
+        .event-card {
+            background-color: #1e1e1e;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(255, 68, 68, 0.2);
+            padding: 20px;
+            transition: transform 0.2s ease-in-out;
+        }
+        .event-card:hover {
+            transform: scale(1.02);
+        }
+
+        .event-image {
+            width: 100%;
+            border-radius: 10px;
+            max-height: 250px;
+            object-fit: cover;
+        }
+
+        .event-details {
+            font-size: 14px;
+            color: #b0b0b0;
+            margin-top: 10px;
+        }
+
+        .event-attendees {
+            font-size: 14px;
+            margin-top: 10px;
+            color: #ff4444;
+        }
+
+        @media (max-width: 600px) {
+            .search-bar {
+                width: 90%;
+            }
+
+            .events-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <button class="menu-btn">☰</button>
+        
+    </header>
+
+    <div class="container">
+        <div class="nav">
+            {% if current_user.is_authenticated %}
+                <a href="{{ url_for('add_event') }}" class="btn">➕ Create Event</a>
+            {% else %}
+                <a href="{{ url_for('login') }}">Login</a> | 
+                <a href="{{ url_for('register') }}">Register</a>
+            {% endif %}
+        </div>
+        <h1>📅 Events</h1>
+        <div class="search-bar">
+            <input type="text" id="searchInput" placeholder="Search events...">
+            <button onclick="searchEvents()">🔍</button>
+        </div>
+
+        <div class="events-grid">
+            {% for event in events %}
+            <div class="event-card" data-title="{{ event.title }}" data-description="{{ event.description }}">
+                {% if event.image %}
+                    <img src="{{ event.image }}" alt="Event image" class="event-image">
+                {% endif %}
+                <h2>{{ event.title }}</h2>
+                <p class="event-details">📆 {{ event.date }} | 🕒 {{ event.time }}</p>
+                <p>{{ event.description }}</p>
+
+                <p class="event-attendees">
+                    👥 Attendees: 
+                    {% set attendees_list = event.attendees.split(',') if event.attendees else [] %}
+                    {{ attendees_list | length }} user(s)
+                </p>
+
+                {% if current_user.is_authenticated %}
+                    {% if current_user.id|string not in attendees_list %}
+                        <a href="{{ url_for('join_event', event_id=event.id) }}" class="btn">Join</a>
+                    {% else %}
+                        <p>✅ You have already joined</p>
+                    {% endif %}
+                {% else %}
+                    <p><a href="{{ url_for('login') }}">Log in to join</a></p>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+{% if current_user.is_authenticated %}
+        <a href="{{ url_for('logout') }}">Logout</a> 
+
+    {% else %}
+        <a href="{{ url_for('login') }}">Login</a> | 
+        <a href="{{ url_for('register') }}">Registrati</a>
+    {% endif %}
+    <script>
+        function searchEvents() {
+            const searchQuery = document.getElementById('searchInput').value.toLowerCase();
+            const eventCards = document.querySelectorAll('.event-card');
+            eventCards.forEach(card => {
+                const title = card.querySelector('h2').textContent.toLowerCase();
+                const description = card.querySelector('p').textContent.toLowerCase();
+                card.style.display = (title.includes(searchQuery) || description.includes(searchQuery)) ? 'block' : 'none';
+            });
+        }
+    </script>
+</body>
+</html>

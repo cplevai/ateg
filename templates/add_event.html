@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aggiungi Evento</title>
+</head>
+<body>
+    <h2>Aggiungi un nuovo evento</h2>
+    <form method="post">
+        <input type="text" name="title" placeholder="Titolo" required>
+        <input type="text" name="image" placeholder="URL Immagine">
+        <input type="date" name="date" required>
+        <input type="time" name="time" required>
+        <textarea name="description" placeholder="Descrizione" required></textarea>
+        <button type="submit">Aggiungi Evento</button>
+    </form>
+    <a href="{{ url_for('index') }}">Torna alla lista eventi</a>
+</body>
+</html>
